@@ -5,8 +5,8 @@ from so.so_pack.process import Process
 from so.so_pack.system_call_type import SystemCallType
 
 class SystemOperation:
-    mm = None
-    cm = None
+    mm = MemoryManager(Strategy.FIRST_FIT, 128)  # Exemplo: Estratégia e tamanho de memória definidos aqui
+    cm = CpuManager()
     schedule = None
 
     @classmethod
@@ -34,18 +34,29 @@ class SystemOperation:
         cls.schedule = scheduler
 
     @classmethod
-    def system_call(cls, type, process=None):
-        if type == SystemCallType.WRITE_PROCESS:
-            # Implemente a lógica de escrita aqui
-            pass
-        elif type == SystemCallType.DELETE_PROCESS:
-            # Implemente a lógica de exclusão aqui
-            pass
-        elif type == SystemCallType.CREATE_PROCESS:
-            if cls.cm is None:
-                cls.cm = CpuManager()
-            if cls.mm is None:
-                cls.mm = MemoryManager(Strategy.FIRST_FIT)
-            return Process()
+    def system_call(cls, call_type, process=None):
+        if call_type == SystemCallType.CREATE_PROCESS:
+            if process:
+                allocation_success = cls.mm.allocate(process.get_id(), process.get_size_in_memory())
+                if allocation_success:
+                    # Adicione o processo ao escalonador ou CPU manager conforme necessário
+                    print(f"Memória alocada para o processo {process.get_id()} com sucesso.")
+                    return True
+                else:
+                    print("Falha ao alocar memória para o novo processo.")
+                return False
+            else:
+                print("Processo não fornecido para criação.")
+                return False
 
-        return None
+        elif call_type == SystemCallType.WRITE_PROCESS:
+            # Implemente a lógica para escrita (atualização) do processo
+            pass
+
+        elif call_type == SystemCallType.DELETE_PROCESS:
+            if process:
+                cls.mm.deallocate(process.get_id())
+                # Remova o processo do escalonador ou CPU manager conforme necessário
+                print(f"Processo {process.get_id()} deletado.")
+            else:
+                print("Processo não especificado para exclusão.")

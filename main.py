@@ -1,56 +1,74 @@
 
 from so.memory.memory_manager import MemoryManager, Strategy
 from so.so_pack.process import Process
-from so.so_pack.system_call_type import SystemCallType
-from so.cpu.cpu_manager import CpuManager
-from so.schedule.schedule import Schedule
-from so.so_pack.system_operation import SystemOperation
 
 
-memory_size = 100
-mm = MemoryManager(Strategy.FIRST_FIT, memory_size)
-current_memory_size = mm.get_memory_size()
-current_strategy = mm.get_strategy()
-cm = CpuManager()
-schedule = Schedule()
-SystemOperation.set_mm(mm)
-SystemOperation.set_cm(cm)
-SystemOperation.set_schedule(schedule)
+def main():
+    memory_manager = MemoryManager(128)
 
-# Lista para armazenar os tamanhos dos processos
-process_sizes = []
+    while True:
+        print("\nMenu Principal:")
+        print("1 - Escolher Estratégia de Alocação de Memória")
+        print("2 - Criar Processo")
+        print("3 - Deletar Processo")
+        print("4 - Sair")
+        choice = input("Escolha uma opção (1/2/3/4): ")
 
-# Função para imprimir os tamanhos dos processos
-def print_process_sizes():
-    print("Process Sizes:", process_sizes)
+        if choice == '1':
+            print("\nEscolha a Estratégia de Alocação de Memória:")
+            print("1 - First Fit")
+            print("2 - Best Fit")
+            print("3 - Worst Fit")
+            strategy_choice = input("Escolha uma estratégia (1/2/3): ")
 
-def print_total_memory_used():
-    total_memory_used = sum(process_sizes)
-    print(f"Total Memory Used: {total_memory_used}")
+            if strategy_choice == '1':
+                memory_manager.set_strategy(Strategy.FIRST_FIT)
+                print("Estratégia First Fit selecionada.")
+            elif strategy_choice == '2':
+                memory_manager.set_strategy(Strategy.BEST_FIT)
+                print("Estratégia Best Fit selecionada.")
+            elif strategy_choice == '3':
+                memory_manager.set_strategy(Strategy.WORST_FIT)
+                print("Estratégia Worst Fit selecionada.")
+            else:
+                print("Opção inválida. Por favor, escolha 1, 2 ou 3.")
 
-def check_memory_overflow():
-    total_memory_used = sum(process_sizes)
-    return total_memory_used > memory_size
 
-# Mostrar o tamanho da memoria
-print(f"Memory Size: {memory_size}")
+        elif choice == '2':
+            if not memory_manager:
+                print("Por favor, selecione uma estratégia de alocação primeiro.")
+                continue
 
-# Criar e adicionar o primeiro processo
-process1 = Process()
-mm.write(process1)
-process_sizes.append(process1.get_size_in_memory())
-print(f"Process created: {process1.get_id()}, Size: {process1.get_size_in_memory()}")
-print_process_sizes()
-print_total_memory_used()
+            size_in_memory = int(input("Informe o tamanho do processo: "))
+            process = Process(size_in_memory)
+            success = memory_manager.allocate(process.get_id(), process.get_size_in_memory())
+            if success:
+                print(
+                    f"Processo criado com ID: {process.get_id()} e tamanho de memória: {process.get_size_in_memory()}")
+            else:
+                print("Erro ao criar processo.")
 
-# Criar e adicionar o segundo processo
-process2 = Process()
-mm.write(process2)
-process_sizes.append(process2.get_size_in_memory())
-print(f"Process created: {process2.get_id()}, Size: {process2.get_size_in_memory()}")
-print_process_sizes()
-print_total_memory_used()
-print(f"Current Strategy Used: {current_strategy}")
+            memory_manager.print_memory_status()
 
-if check_memory_overflow():
-    print("Memory overflow detected. Handle the situation accordingly.")
+        elif choice == '3':
+            if not memory_manager:
+                print("Por favor, selecione uma estratégia de alocação primeiro.")
+                continue
+
+            process_id = input("Informe o ID do processo a ser deletado: ")
+            success = memory_manager.deallocate(process_id)
+            if success:
+                print(f"Processo com ID: {process_id} deletado.")
+            else:
+                print(f"Processo com ID: {process_id} não encontrado.")
+
+        elif choice == '4':
+            print("Saindo...")
+            break
+
+        else:
+            print("Opção inválida. Por favor, escolha entre 1, 2, 3 ou 4.")
+
+
+if __name__ == "__main__":
+    main()

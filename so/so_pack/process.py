@@ -1,11 +1,10 @@
 import uuid
-import random
 
 class Process:
-    def __init__(self):
+    def __init__(self, size_in_memory):
         self.id = str(uuid.uuid4())
-        given_list = [1, 2, 4, 5, 8, 10, 20, 50, 100]
-        self.size_in_memory = random.choice(given_list)
+        self.size_in_memory = size_in_memory  # O tamanho é agora passado como um argumento
+        self.address_in_memory = None  # Alocado pelo MemoryManager ao alocar o processo
 
     def get_id(self):
         return self.id
